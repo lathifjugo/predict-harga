@@ -1,8 +1,8 @@
 streamlit
 pandas
 scikit-learn
-matplotlib
-seaborn
-joblib
+matplotlib==3.4.1
+seaborn==0.16.0
+joblib==0.16.0
 os
-numpy
+numpy==1.20.1
