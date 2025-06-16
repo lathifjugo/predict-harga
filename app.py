@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import io
 from datetime import datetime
-from weasyprint import HTML
-import base64
 
 # Load model dan data asli
 model_data = joblib.load('model_regresi_rumah.sav')
@@ -136,16 +133,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Fungsi Konversi HTML ke PDF (Menggunakan WeasyPrint) ---
-def convert_html_to_pdf(source_html):
-    try:
-        output = io.BytesIO()
-        HTML(string=source_html).write_pdf(output)
-        return output
-    except Exception as e:
-        st.error(f"Gagal membuat PDF: {str(e)}")
-        return None
-
 # --- Header ---
 st.title("🏠 Prediksi Harga Rumah")
 st.markdown("Masukkan detail properti untuk memprediksi harga dalam Rupiah")
@@ -274,147 +261,6 @@ if submit:
         if metrics:
             st.subheader("📊 Evaluasi Model")
             st.success(f"**Akurasi Pada Score Prediksi (R² Score):** {metrics['R2'] * 100:.2f}%")
-
-        # --- PDF Export ---
-        st.subheader("📥 Unduh Hasil Prediksi")
-        pdf_html = f"""
-        <html>
-        <head>
-            <style>
-                @page {{
-                    margin: 0;
-                }}
-                body {{
-                    font-family: 'Arial', sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    padding: 0;
-                    margin: 0;
-                    position: relative;
-                }}
-                .yellow-stripe {{
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 25px;
-                    height: 100%;
-                    background-color: #FFD700;
-                    z-index: -1;
-                }}
-                .content {{
-                    padding: 30px 40px 30px 60px;
-                    position: relative;
-                }}
-                h2 {{
-                    color: #2c3e50;
-                    border-bottom: 2px solid #4f8bf9;
-                    padding-bottom: 10px;
-                    margin-top: 0;
-                }}
-                ul {{
-                    margin-left: 20px;
-                    padding-left: 0;
-                }}
-                li {{
-                    margin-bottom: 8px;
-                    position: relative;
-                    padding-left: 15px;
-                }}
-                li:before {{
-                    content: "•";
-                    color: #FFD700;
-                    font-size: 20px;
-                    position: absolute;
-                    left: 0;
-                    top: -2px;
-                }}
-                .highlight {{
-                    color: #4f8bf9;
-                    font-weight: bold;
-                    font-size: 1.1em;
-                }}
-                .header {{
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                    padding-bottom: 10px;
-                    border-bottom: 1px solid #eee;
-                }}
-                .logo {{
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #2c3e50;
-                }}
-                .date {{
-                    color: #666;
-                    font-size: 14px;
-                }}
-                .price-box {{
-                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                    padding: 15px;
-                    border-radius: 8px;
-                    margin: 20px 0;
-                    text-align: center;
-                    border-left: 5px solid #FFD700;
-                }}
-                .footer {{
-                    margin-top: 30px;
-                    padding-top: 15px;
-                    border-top: 1px solid #eee;
-                    font-size: 12px;
-                    color: #777;
-                    text-align: center;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="yellow-stripe"></div>
-            <div class="content">
-                <div class="header">
-                    <div class="logo">🏠 Prediksi Rumah</div>
-                    <div class="date">{datetime.now().strftime("%d %B %Y")}</div>
-                </div>
-                
-                <h2>Estimasi Harga Properti</h2>
-                
-                <div class="price-box">
-                    <h3 style="margin:0;color:#2c3e50;">Estimasi Harga</h3>
-                    <p style="font-size:24px;margin:10px 0;color:#4f8bf9;"><strong>{harga_rupiah}</strong></p>
-                </div>
-                
-                <h3>Detail Properti:</h3>
-                <ul>
-                    <li><b>Jumlah Kamar Tidur:</b> {bedrooms}</li>
-                    <li><b>Jumlah Kamar Mandi:</b> {bathrooms}</li>
-                    <li><b>Luas Tanah:</b> {land_size} m²</li>
-                    <li><b>Luas Bangunan:</b> {building_size} m²</li>
-                    <li><b>Jumlah Lantai:</b> {floors}</li>
-                    <li><b>Usia Bangunan:</b> {building_age} tahun</li>
-                    <li><b>Jumlah Garasi:</b> {garages}</li>
-                    <li><b>Perabotan:</b> {furnishing.capitalize()}</li>
-                    <li><b>Kondisi:</b> {property_condition.capitalize()}</li>
-                </ul>
-                
-                <div class="footer">
-                    <p>Dokumen ini dibuat secara otomatis oleh Aplikasi Prediksi Harga Rumah</p>
-                    <p>© {datetime.now().year} Jasasaja Rumah 123 | All rights reserved</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-        
-        pdf_file = convert_html_to_pdf(pdf_html)
-        if pdf_file:
-            st.download_button(
-                label="📄 Unduh Hasil Prediksi (PDF)",
-                data=pdf_file.getvalue(),
-                file_name="hasil_prediksi_harga_rumah.pdf",
-                mime="application/pdf"
-            )
-        else:
-            st.error("Gagal membuat file PDF.")
 
 # --- Footer ---
 st.markdown("<div class='footer'>© 2023 Aplikasi Prediksi Harga Rumah | Jasasaja Rumah 123</div>", unsafe_allow_html=True)
