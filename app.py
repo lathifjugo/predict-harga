@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import joblib
-from xhtml2pdf import pisa
 import io
 from datetime import datetime
+from weasyprint import HTML
 import base64
 
 # Load model dan data asli
@@ -136,13 +136,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Fungsi Konversi HTML ke PDF ---
+# --- Fungsi Konversi HTML ke PDF (Menggunakan WeasyPrint) ---
 def convert_html_to_pdf(source_html):
-    output = io.BytesIO()
-    pisa_status = pisa.CreatePDF(io.StringIO(source_html), dest=output)
-    if pisa_status.err:
+    try:
+        output = io.BytesIO()
+        HTML(string=source_html).write_pdf(output)
+        return output
+    except Exception as e:
+        st.error(f"Gagal membuat PDF: {str(e)}")
         return None
-    return output
 
 # --- Header ---
 st.title("🏠 Prediksi Harga Rumah")
@@ -192,9 +194,6 @@ st.markdown("""
 # Tampilkan tabel detail
 st.write("Detail Pengaruh Setiap Fitur:")
 st.dataframe(importance_df.style.format({'Pengaruh': '{:.2%}'}))
-
-
-
 
 # --- Prediction ---
 if submit:
@@ -276,7 +275,7 @@ if submit:
             st.subheader("📊 Evaluasi Model")
             st.success(f"**Akurasi Pada Score Prediksi (R² Score):** {metrics['R2'] * 100:.2f}%")
 
-               # --- PDF Export ---
+        # --- PDF Export ---
         st.subheader("📥 Unduh Hasil Prediksi")
         pdf_html = f"""
         <html>
